@@ -7,12 +7,12 @@ mod riscv_core;
 // Usar sqlite
 
 fn main() {
-    // let args: Vec<String> = env::args().collect();
-    // let file_path = &args[1];
-    // println!("Reading file {}", file_path);
+    let args: Vec<String> = env::args().collect();
+    let file_path = &args[1];
 
-    // let contents = fs::read_to_string(file_path).expect("Could not read file!");
-    let contents = fs::read_to_string("./riscv_bin_dump/laco5x.txt").expect("Could not read file!");
+    println!("Reading file {}", file_path);
+
+    let contents = fs::read_to_string(file_path).expect("Could not read file!");
 
     for line in contents.trim().lines() {
         let inst = riscv_core::instruction::Instruction::new(line);
