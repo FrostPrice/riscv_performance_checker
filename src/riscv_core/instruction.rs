@@ -2,6 +2,7 @@
 pub enum OpCodeType {
     R(String),
     I(String),
+    L(String),
     S(String),
     B(String),
     U(String),
@@ -14,7 +15,7 @@ pub struct Instruction {
     // rd: u8,
     // rs1: u8,
     // rs2: u8,
-    funct3: String,
+    // funct3: String,
     // funct7: u8,
 }
 
@@ -23,9 +24,8 @@ impl Instruction {
         let opcode_bits = &instruction[instruction.len() - 7..];
         let opcode = match opcode_bits {
             "0110011" => OpCodeType::R(opcode_bits.to_string()),
-            "1110011" | "0010011" | "0001111" | "1100111" | "0000011" => {
-                OpCodeType::I(opcode_bits.to_string())
-            }
+            "1110011" | "0010011" | "0001111" | "1100111" => OpCodeType::I(opcode_bits.to_string()),
+            "0000011" => OpCodeType::L(opcode_bits.to_string()),
             "0100011" => OpCodeType::S(opcode_bits.to_string()),
             "1100011" => OpCodeType::B(opcode_bits.to_string()),
             "0110111" => OpCodeType::U(opcode_bits.to_string()),
@@ -34,10 +34,10 @@ impl Instruction {
         };
 
         // println!("{:?}", instruction);
-        let func3_bits = &instruction[instruction.len() - 15..instruction.len() - 11];
+        // let func3_bits = &instruction[instruction.len() - 15..instruction.len() - 11];
         Self {
             opcode,
-            funct3: func3_bits.to_string(),
+            // funct3: func3_bits.to_string(),
         }
     }
 
@@ -45,7 +45,7 @@ impl Instruction {
         self.opcode
     }
 
-    pub fn get_func3(self) -> String {
-        self.funct3
-    }
+    // pub fn get_func3(self) -> String {
+    //     self.funct3
+    // }
 }
