@@ -7,11 +7,4 @@ authors = ["Mateus Barbosa <barbosamat16@gmail.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "4.3.1"
-actix-rt = "2.8.0"
-actix-service = "2.0.2"
-diesel = { version = "2.1.0", features = ["sqlite", "r2d2", "chrono"] }
-diesel_migrations = "2.1.0"
-log = "0.4.20"
 dotenv = "0.15.0"
-serde = { version = "1.0.183", features = ["derive"] }

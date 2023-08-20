@@ -1,44 +1,4 @@
-use std::{env, io};
-
-use actix_web::{web, App, HttpServer};
-
-mod api;
-mod config;
-mod models;
-mod riscv_core;
-mod schema;
-mod services;
-mod utils;
-
-#[actix_rt::main]
-async fn main() -> io::Result<()> {
-    dotenv::dotenv().expect("Failed to read .env file");
-
-    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    let app_host = env::var("APP_HOST").expect("APP_HOST not found.");
-    let app_port = env::var("APP_PORT").expect("APP_PORT not found.");
-    let app_url = format!("{}:{}", &app_host, &app_port);
-
-    let pool = config::db::migrate_and_config_db(&db_url);
-
-    // for line in contents.trim().lines() {
-    //     let inst = riscv_core::instruction::Instruction::new(line);
-
-    //     let opcode = inst.clone().get_opcode();
-    //     println!("OpCode: {:?}", opcode);
-    // }
-
-    HttpServer::new(move || {
-        App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .wrap(actix_web::middleware::Logger::default())
-            .configure(config::app::config_services)
-    })
-    .bind(&app_url)?
-    .run()
-    .await
-}
+fn main() {}
 
 // ################################
 // .text
