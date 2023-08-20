@@ -12,11 +12,6 @@ pub enum OpCodeType {
 #[derive(Clone, Debug)]
 pub struct Instruction {
     opcode: OpCodeType,
-    // rd: u8,
-    // rs1: u8,
-    // rs2: u8,
-    // funct3: String,
-    // funct7: u8,
 }
 
 impl Instruction {
@@ -33,19 +28,10 @@ impl Instruction {
             _ => unimplemented!("Opcode not implemented"),
         };
 
-        // println!("{:?}", instruction);
-        // let func3_bits = &instruction[instruction.len() - 15..instruction.len() - 11];
-        Self {
-            opcode,
-            // funct3: func3_bits.to_string(),
-        }
+        Self { opcode }
     }
 
     pub fn get_opcode(self) -> OpCodeType {
         self.opcode
     }
-
-    // pub fn get_func3(self) -> String {
-    //     self.funct3
-    // }
 }
