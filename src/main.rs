@@ -1,7 +1,6 @@
 use std::{env, io};
 
 use actix_web::{web, App, HttpServer};
-use models::organization::{Organization, OrganizationDTO};
 
 mod api;
 mod config;
@@ -22,8 +21,6 @@ async fn main() -> io::Result<()> {
     let app_url = format!("{}:{}", &app_host, &app_port);
 
     let pool = config::db::migrate_and_config_db(&db_url);
-
-    let conn = &mut pool.get().unwrap();
 
     // for line in contents.trim().lines() {
     //     let inst = riscv_core::instruction::Instruction::new(line);

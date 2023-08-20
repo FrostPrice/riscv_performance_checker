@@ -1,8 +1,15 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    bin_files (id) {
+        id -> Text,
+        file -> Text,
+    }
+}
+
+diesel::table! {
     organizations (id) {
-        id -> Nullable<Text>,
+        id -> Text,
         created_at -> Timestamp,
         clock -> Integer,
         cpi_instruction_r -> Integer,
@@ -14,3 +21,8 @@ diesel::table! {
         cpi_instruction_j -> Integer,
     }
 }
+
+diesel::allow_tables_to_appear_in_same_query!(
+    bin_files,
+    organizations,
+);
