@@ -7,4 +7,3 @@ authors = ["Mateus Barbosa <barbosamat16@gmail.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dotenv = "0.15.0"
