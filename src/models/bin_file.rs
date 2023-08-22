@@ -1,5 +1,5 @@
 use actix_web::web::Bytes;
-use diesel::{Insertable, QueryResult, Queryable, RunQueryDsl, Selectable};
+use diesel::{Insertable, QueryDsl, QueryResult, Queryable, RunQueryDsl, Selectable};
 use serde::{Deserialize, Serialize};
 
 use crate::{config::db::Connection, schema::bin_files::dsl::*};
@@ -8,9 +8,9 @@ use crate::{config::db::Connection, schema::bin_files::dsl::*};
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(table_name = crate::schema::bin_files)]
 pub struct BinFile {
-    id: String,
+    pub id: String,
     // architecture: String,
-    file: String,
+    pub file: String,
 }
 
 #[derive(Insertable, Serialize, Deserialize)]
@@ -22,6 +22,13 @@ pub struct BinFileDTO {
 }
 
 impl BinFile {
+    pub fn find_by_id(i: String, conn: &mut Connection) -> QueryResult<BinFile> {
+        bin_files
+            .select((id, file))
+            .find(i)
+            .get_result::<BinFile>(conn)
+    }
+
     pub fn insert(i: String, new_file: Bytes, conn: &mut Connection) -> QueryResult<usize> {
         let text_file = String::from_utf8(new_file.to_vec()).unwrap();
 

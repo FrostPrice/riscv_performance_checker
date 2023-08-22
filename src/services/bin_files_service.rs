@@ -5,6 +5,16 @@ use actix_web::{
 
 use crate::{config::db::Pool, models::bin_file::BinFile, utils::error::ServiceError};
 
+pub async fn find_by_id(id: String, pool: &web::Data<Pool>) -> Result<BinFile, ServiceError> {
+    match BinFile::find_by_id(id, &mut pool.get().unwrap()) {
+        Ok(bin_file) => Ok(bin_file),
+        Err(message) => Err(ServiceError::new(
+            StatusCode::BAD_REQUEST,
+            message.to_string(),
+        )),
+    }
+}
+
 pub async fn insert(
     id: String,
     bin_file_data: Bytes,

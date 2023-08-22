@@ -5,6 +5,7 @@ use actix_web::{web, App, HttpServer};
 mod api;
 mod config;
 mod models;
+mod performance_calculator;
 mod riscv_core;
 mod schema;
 mod services;
@@ -21,13 +22,6 @@ async fn main() -> io::Result<()> {
     let app_url = format!("{}:{}", &app_host, &app_port);
 
     let pool = config::db::migrate_and_config_db(&db_url);
-
-    // for line in contents.trim().lines() {
-    //     let inst = riscv_core::instruction::Instruction::new(line);
-
-    //     let opcode = inst.clone().get_opcode();
-    //     println!("OpCode: {:?}", opcode);
-    // }
 
     HttpServer::new(move || {
         App::new()

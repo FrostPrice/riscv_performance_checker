@@ -3,12 +3,12 @@ CREATE TABLE organizations (
     id TEXT PRIMARY KEY NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    clock INTEGER NOT NULL,
-    cpi_instruction_r INTEGER NOT NULL,
-    cpi_instruction_i INTEGER NOT NULL,
-    cpi_instruction_l INTEGER NOT NULL,
-    cpi_instruction_s INTEGER NOT NULL,
-    cpi_instruction_b INTEGER NOT NULL,
-    cpi_instruction_u INTEGER NOT NULL,
-    cpi_instruction_j INTEGER NOT NULL
+    clock DOUBLE NOT NULL,
+    cpi_instruction_r DOUBLE NOT NULL,
+    cpi_instruction_i DOUBLE NOT NULL,
+    cpi_instruction_l DOUBLE NOT NULL,
+    cpi_instruction_s DOUBLE NOT NULL,
+    cpi_instruction_b DOUBLE NOT NULL,
+    cpi_instruction_u DOUBLE NOT NULL,
+    cpi_instruction_j DOUBLE NOT NULL
 );

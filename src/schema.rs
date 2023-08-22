@@ -11,18 +11,15 @@ diesel::table! {
     organizations (id) {
         id -> Text,
         created_at -> Timestamp,
-        clock -> Integer,
-        cpi_instruction_r -> Integer,
-        cpi_instruction_i -> Integer,
-        cpi_instruction_l -> Integer,
-        cpi_instruction_s -> Integer,
-        cpi_instruction_b -> Integer,
-        cpi_instruction_u -> Integer,
-        cpi_instruction_j -> Integer,
+        clock -> Double,
+        cpi_instruction_r -> Double,
+        cpi_instruction_i -> Double,
+        cpi_instruction_l -> Double,
+        cpi_instruction_s -> Double,
+        cpi_instruction_b -> Double,
+        cpi_instruction_u -> Double,
+        cpi_instruction_j -> Double,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    bin_files,
-    organizations,
-);
+diesel::allow_tables_to_appear_in_same_query!(bin_files, organizations,);
