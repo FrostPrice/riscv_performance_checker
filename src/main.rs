@@ -12,7 +12,7 @@ fn main() {
 
     // Get information about clock
     println!("/////////////////////////////////////////////////////////////");
-    println!("Por favor, informe o tempo de clock (em ns): ");
+    println!("Por favor, informe o tempo de clock: ");
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
@@ -280,11 +280,11 @@ fn main() {
     // O tempo de execução para o programa em cada organização;
     println!("/////////////////////////////////////////////////////////////");
     println!(
-        "Tempo de execucao para o programa na organizacao A: {} ns",
+        "Tempo de execucao para o programa na organizacao A: {}",
         tempo_execucao_a
     );
     println!(
-        "Tempo de execucao para o programa na organizacao B: {} ns",
+        "Tempo de execucao para o programa na organizacao B: {}",
         tempo_execucao_b
     );
 
@@ -320,26 +320,3 @@ fn main() {
 // 	jal  zero, for
 // fim:
 // ################################
-
-///// TODO:
-/*
-Solicitar input de informações de Ciclo por instrução de 2 organizações diferente
-Solicitar input de informação de clock (Tempo de relógio)
-Calcular o desempenho de ambas as organizações
-Informar qual a organização mais rápida (ou mais lenta), e o quao mais rapida (ou lenta) ela é
-Contar quantidade de instruções executadas
-O teste ira usar o monociclo e multiciclo
-*/
-
-/////////////////////////////////////////
-/*
-Importante:
-Cada formato de insrução terá um CPI:
-R(String),
-I(String),
-S(String),
-B(String),
-U(String),
-J(String),
-L(String),
-*/
