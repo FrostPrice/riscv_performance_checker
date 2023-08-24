@@ -50,23 +50,10 @@ async fn main() -> io::Result<()> {
 
 ///// TODO:
 /*
-Solicitar input de informações de Ciclo por instrução de 2 organizações diferente
-Solicitar input de informação de clock (Tempo de relógio)
-Calcular o desempenho de ambas as organizações
-Informar qual a organização mais rápida (ou mais lenta), e o quao mais rapida (ou lenta) ela é
-Contar quantidade de instruções executadas
-O teste ira usar o monociclo e multiciclo
-*/
-
-/////////////////////////////////////////
-/*
-Importante:
-Cada formato de insrução terá um CPI:
-R(String),
-I(String),
-S(String),
-B(String),
-U(String),
-J(String),
-L(String),
+Solicitar input de informações de Ciclo por instrução de 2 organizações diferente - OK
+Solicitar input de informação de clock (Tempo de relógio) - OK
+Calcular o desempenho de ambas as organizações - OK
+Informar qual a organização mais rápida (ou mais lenta), e o quao mais rapida (ou lenta) ela é - OK
+Contar quantidade de instruções executadas - OK
+O teste ira usar o monociclo e multiciclo - NOK
 */

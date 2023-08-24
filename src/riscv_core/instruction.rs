@@ -1,3 +1,16 @@
+/////////////////////////////////////////
+/*
+Importante:
+Cada formato de insrução terá um CPI:
+R(String),
+I(String),
+S(String),
+B(String),
+U(String),
+J(String),
+L(String),
+*/
+
 #[derive(Clone, Debug)]
 pub enum OpCodeType {
     R(String),
