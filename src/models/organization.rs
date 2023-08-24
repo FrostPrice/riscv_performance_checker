@@ -8,28 +8,28 @@ use crate::{config::db::Connection, schema::organizations::dsl::*};
 #[diesel(table_name = crate::schema::organizations)]
 pub struct Organization {
     pub id: String,
-    pub clock: f64,
-    pub cpi_instruction_r: f64,
-    pub cpi_instruction_i: f64,
-    pub cpi_instruction_l: f64,
-    pub cpi_instruction_s: f64,
-    pub cpi_instruction_b: f64,
-    pub cpi_instruction_u: f64,
-    pub cpi_instruction_j: f64,
+    pub clock: f32,
+    pub cpi_instruction_r: f32,
+    pub cpi_instruction_i: f32,
+    pub cpi_instruction_l: f32,
+    pub cpi_instruction_s: f32,
+    pub cpi_instruction_b: f32,
+    pub cpi_instruction_u: f32,
+    pub cpi_instruction_j: f32,
 }
 
 #[derive(Insertable, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::organizations)]
 pub struct OrganizationDTO {
     pub id: String,
-    pub clock: f64,
-    pub cpi_instruction_r: f64,
-    pub cpi_instruction_i: f64,
-    pub cpi_instruction_l: f64,
-    pub cpi_instruction_s: f64,
-    pub cpi_instruction_b: f64,
-    pub cpi_instruction_u: f64,
-    pub cpi_instruction_j: f64,
+    pub clock: f32,
+    pub cpi_instruction_r: f32,
+    pub cpi_instruction_i: f32,
+    pub cpi_instruction_l: f32,
+    pub cpi_instruction_s: f32,
+    pub cpi_instruction_b: f32,
+    pub cpi_instruction_u: f32,
+    pub cpi_instruction_j: f32,
 }
 
 impl Organization {

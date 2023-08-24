@@ -16,20 +16,20 @@ pub struct PerformanceCalculator {
 #[derive(Serialize, Deserialize)]
 pub struct BasicInformation {
     pub organization_a_name: String,
-    pub organization_a_clock: f64,
+    pub organization_a_clock_time: f32,
     pub organization_b_name: String,
-    pub organization_b_clock: f64,
+    pub organization_b_clock_time: f32,
     pub bin_file_name: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Result {
-    pub total_cpi_organization_a: f64,
-    pub total_cpi_organization_b: f64,
-    pub average_cpi_organization_a: f64,
-    pub average_cpi_organization_b: f64,
-    pub execution_time_organization_a: f64,
-    pub execution_time_organization_b: f64,
+    pub total_cicles_organization_a: f32,
+    pub total_cicles_organization_b: f32,
+    pub average_cpi_organization_a: f32,
+    pub average_cpi_organization_b: f32,
+    // pub execution_time_organization_a: f32,
+    // pub execution_time_organization_b: f32,
     pub best_performance: String,
 }
 
@@ -86,16 +86,16 @@ impl PerformanceCalculator {
 
         // Start: calculating instruction info
         let total_instructions = bin_file.file.lines().count();
-        let mut total_cicles_a: f64 = 0.0;
-        let mut total_cicles_b: f64 = 0.0;
+        let mut total_cicles_a: f32 = 0.0;
+        let mut total_cicles_b: f32 = 0.0;
 
         for line in bin_file.file.trim().lines() {
             let inst = riscv_core::instruction::Instruction::new(line);
 
             let opcode = inst.clone().get_opcode();
 
-            let cpi_a: &f64;
-            let cpi_b: &f64;
+            let cpi_a: &f32;
+            let cpi_b: &f32;
 
             match opcode {
                 OpCodeType::R(_) => {
@@ -128,29 +128,43 @@ impl PerformanceCalculator {
                 }
             }
 
-            total_cicles_a = total_cicles_a + cpi_a;
-            total_cicles_b = total_cicles_b + cpi_b;
+            total_cicles_a += cpi_a;
+            total_cicles_b += cpi_b;
         }
 
-        let execution_time_a = total_cicles_a * organization_a.clock;
-        let execution_time_b = total_cicles_b * organization_b.clock;
+        // CPI = total_cycles (with acordingly Instruction cycle) / total_instructions
+        let average_cpi_a = total_cicles_a / total_instructions as f32;
+        let average_cpi_b = total_cicles_b / total_instructions as f32;
 
-        let average_cpi_a = total_cicles_a / total_instructions as f64;
-        let average_cpi_b = total_cicles_b / total_instructions as f64;
+        // Texec = Total Instructions * CPI * TClock
+        let execution_time_a = total_cicles_a * average_cpi_a * organization_a.clock; // In seconds
+        let execution_time_b = total_cicles_b * average_cpi_b * organization_b.clock; // In seconds
 
+        // Texec = (Total Instructions * CPI) / FClock
+        // let execution_time_a = (total_cicles_a * average_cpi_a) / organization_a.clock; // In seconds
+        // let execution_time_b = (total_cicles_b * average_cpi_b) / organization_b.clock; // In seconds
+
+        // Performance = Texec(GreaterValue) / Texec(LesserValue)
         let best_performance: String;
         if execution_time_a < execution_time_b {
             best_performance = format!(
-                "A organizacao A eh {} vezes mais rapida que a organizacao B",
-                execution_time_b / execution_time_a
+                "A organizacao {} eh {} vezes mais rapida que a organizacao {}",
+                organization_a.id,
+                execution_time_b / execution_time_a,
+                organization_b.id
             );
         } else if execution_time_a > execution_time_b {
             best_performance = format!(
-                "A organizacao B eh {} vezes mais rapida que a organizacao A",
-                execution_time_b / execution_time_a
+                "A organizacao {} eh {} vezes mais rapida que a organizacao {}",
+                organization_b.id,
+                execution_time_b / execution_time_a,
+                organization_a.id
             );
         } else {
-            best_performance = "As organizacoes A e B sao igualmente rapidas".to_string();
+            best_performance = format!(
+                "As organizacoes {} e {} sao igualmente rapidas",
+                organization_a.id, organization_b.id
+            );
         }
         // End: calculating instruction info
 
@@ -158,18 +172,18 @@ impl PerformanceCalculator {
         Ok(PerformanceCalculator {
             basic_information: BasicInformation {
                 organization_a_name: organization_a.id,
-                organization_a_clock: organization_a.clock,
+                organization_a_clock_time: organization_a.clock,
                 organization_b_name: organization_b.id,
-                organization_b_clock: organization_b.clock,
+                organization_b_clock_time: organization_b.clock,
                 bin_file_name: bin_file.id,
             },
             result: Result {
-                total_cpi_organization_a: total_cicles_a,
-                total_cpi_organization_b: total_cicles_b,
+                total_cicles_organization_a: total_cicles_a,
+                total_cicles_organization_b: total_cicles_b,
                 average_cpi_organization_a: average_cpi_a,
                 average_cpi_organization_b: average_cpi_b,
-                execution_time_organization_a: execution_time_a,
-                execution_time_organization_b: execution_time_b,
+                // execution_time_organization_a: execution_time_a,
+                // execution_time_organization_b: execution_time_b,
                 best_performance,
             },
         })
