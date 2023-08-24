@@ -157,7 +157,7 @@ impl PerformanceCalculator {
             best_performance = format!(
                 "A organizacao {} eh {} vezes mais rapida que a organizacao {}",
                 organization_b.id,
-                execution_time_b / execution_time_a,
+                execution_time_a / execution_time_b,
                 organization_a.id
             );
         } else {
