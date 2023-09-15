@@ -15,7 +15,7 @@ pub type Connection = SqliteConnection;
 pub type Pool = r2d2::Pool<ConnectionManager<Connection>>;
 
 fn create_connection_pool(database_url: &str) -> Pool {
-    let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+    let manager = ConnectionManager::<Connection>::new(database_url);
     Pool::builder()
         .test_on_check_out(true)
         .build(manager)

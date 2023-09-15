@@ -1,9 +1,11 @@
-use diesel::{Insertable, QueryDsl, QueryResult, Queryable, RunQueryDsl, Selectable};
+use diesel::{
+    query_builder::AsChangeset, Insertable, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{config::db::Connection, schema::organizations::dsl::*};
 
-#[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize, Deserialize)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(table_name = crate::schema::organizations)]
 pub struct Organization {
@@ -18,7 +20,7 @@ pub struct Organization {
     pub cpi_instruction_j: f32,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable, Serialize, Deserialize, AsChangeset)]
 #[diesel(table_name = crate::schema::organizations)]
 pub struct OrganizationDTO {
     pub id: String,
@@ -50,9 +52,44 @@ impl Organization {
             .get_result::<Organization>(conn)
     }
 
+    pub fn find_all(conn: &mut Connection) -> QueryResult<Vec<Organization>> {
+        organizations
+            .select((
+                id,
+                clock,
+                cpi_instruction_r,
+                cpi_instruction_i,
+                cpi_instruction_l,
+                cpi_instruction_s,
+                cpi_instruction_b,
+                cpi_instruction_u,
+                cpi_instruction_j,
+            ))
+            .load::<Organization>(conn)
+    }
+
     pub fn insert(new_organization: OrganizationDTO, conn: &mut Connection) -> QueryResult<usize> {
         diesel::insert_into(organizations)
             .values(&new_organization)
             .execute(conn)
+    }
+
+    pub fn update(
+        i: String,
+        update_organization: OrganizationDTO,
+        conn: &mut Connection,
+    ) -> QueryResult<usize> {
+        diesel::update(organizations.find(i))
+            .set(&update_organization)
+            .execute(conn)
+    }
+
+    pub fn delete(i: String, conn: &mut Connection) -> QueryResult<usize> {
+        let org = Organization::find_by_id(i.clone(), conn);
+
+        match org {
+            Ok(_) => diesel::delete(organizations.find(i)).execute(conn),
+            Err(err) => Err(err),
+        }
     }
 }

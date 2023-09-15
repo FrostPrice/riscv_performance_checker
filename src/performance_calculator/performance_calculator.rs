@@ -28,8 +28,8 @@ pub struct Result {
     pub total_cicles_organization_b: f32,
     pub average_cpi_organization_a: f32,
     pub average_cpi_organization_b: f32,
-    // pub execution_time_organization_a: f32,
-    // pub execution_time_organization_b: f32,
+    pub execution_time_organization_a: f32,
+    pub execution_time_organization_b: f32,
     pub best_performance: String,
 }
 
@@ -136,10 +136,12 @@ impl PerformanceCalculator {
         let average_cpi_a = total_cicles_a / total_instructions as f32;
         let average_cpi_b = total_cicles_b / total_instructions as f32;
 
+        // For when using cpu time
         // Texec = Total Instructions * CPI * TClock
-        let execution_time_a = total_cicles_a * average_cpi_a * organization_a.clock; // In seconds
-        let execution_time_b = total_cicles_b * average_cpi_b * organization_b.clock; // In seconds
+        let execution_time_a = total_instructions as f32 * average_cpi_a * organization_a.clock; // In seconds
+        let execution_time_b = total_instructions as f32 * average_cpi_b * organization_b.clock; // In seconds
 
+        // For when using cpu frequency
         // Texec = (Total Instructions * CPI) / FClock
         // let execution_time_a = (total_cicles_a * average_cpi_a) / organization_a.clock; // In seconds
         // let execution_time_b = (total_cicles_b * average_cpi_b) / organization_b.clock; // In seconds
@@ -182,8 +184,8 @@ impl PerformanceCalculator {
                 total_cicles_organization_b: total_cicles_b,
                 average_cpi_organization_a: average_cpi_a,
                 average_cpi_organization_b: average_cpi_b,
-                // execution_time_organization_a: execution_time_a,
-                // execution_time_organization_b: execution_time_b,
+                execution_time_organization_a: execution_time_a,
+                execution_time_organization_b: execution_time_b,
                 best_performance,
             },
         })

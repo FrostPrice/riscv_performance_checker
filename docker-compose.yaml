@@ -1,0 +1,13 @@
+version: "3"
+services:
+  api:
+    container_name: api
+    image: teste:0.0.0
+    # restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=./db.sqlite3
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+# Create the sqlite database separated from the container

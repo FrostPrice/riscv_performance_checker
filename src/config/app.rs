@@ -10,19 +10,27 @@ pub fn config_services(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/organizations")
                     .service(
-                        web::resource("").route(web::post().to(organizations_controller::insert)),
+                        web::resource("")
+                            .route(web::get().to(organizations_controller::find_all))
+                            .route(web::post().to(organizations_controller::insert)),
                     )
                     .service(
                         web::resource("/{id}")
-                            .route(web::get().to(organizations_controller::find_by_id)),
+                            .route(web::get().to(organizations_controller::find_by_id))
+                            .route(web::put().to(organizations_controller::update))
+                            .route(web::delete().to(organizations_controller::delete)),
                     ),
             )
             .service(
-                web::scope("/bin_files").service(
-                    web::resource("/{id}")
-                        .route(web::get().to(bin_files_controller::find_by_id))
-                        .route(web::put().to(bin_files_controller::insert)),
-                ),
+                web::scope("/bin_files")
+                    .service(web::resource("").route(web::get().to(bin_files_controller::find_all)))
+                    .service(
+                        web::resource("/{id}")
+                            .route(web::get().to(bin_files_controller::find_by_id))
+                            .route(web::put().to(bin_files_controller::insert))
+                            .route(web::put().to(bin_files_controller::update))
+                            .route(web::delete().to(bin_files_controller::delete)),
+                    ),
             )
             .service(
                 web::scope("/performance_calculator").service(

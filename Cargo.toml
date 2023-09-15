@@ -13,5 +13,6 @@ actix-service = "2.0.2"
 diesel = { version = "2.1.0", features = ["sqlite", "r2d2", "chrono"] }
 diesel_migrations = "2.1.0"
 log = "0.4.20"
+env_logger = "0.10.0"
 dotenv = "0.15.0"
 serde = { version = "1.0.183", features = ["derive"] }
