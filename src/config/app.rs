@@ -33,10 +33,16 @@ pub fn config_services(cfg: &mut web::ServiceConfig) {
                     ),
             )
             .service(
-                web::scope("/performance_calculator").service(
-                    web::resource("/calc")
-                        .route(web::get().to(performance_calculator_controller::calc)),
-                ),
+                web::scope("/performance_calculator")
+                    .service(
+                        web::resource("/calc_monocycle").route(
+                            web::get().to(performance_calculator_controller::calc_monocycle),
+                        ),
+                    )
+                    .service(
+                        web::resource("/calc_pipeline")
+                            .route(web::get().to(performance_calculator_controller::calc_pipeline)),
+                    ),
             ),
     );
 }
