@@ -58,3 +58,11 @@ Informar qual a organização mais rápida (ou mais lenta), e o quao mais rapida
 Contar quantidade de instruções executadas - OK
 O teste ira usar o monociclo e multiciclo - NOK
 */
+
+
+///////////// TODOS:
+/// 1. (Bolha) Considerar que não há nenhuma solução em hardware para conflitos e incluir NOPs, quando necessário, para evitar o conflito de dados.
+/// 2. Considerar que foi implementada a técnica de forwarding e inserir NOPs, quando necessário, para evitar conflito de dados.
+/// 3. Considerar que não há nenhuma solução em hardware para conflitos e quando possível reordenar as instruções e quando não for possível inserir NOPs, para evitar conflito de dados.
+        // a. Por exemplo, é possível que o programa não tenha nenhuma instrução, a diante no código, para ser reordenada.
+/// 4. Considerar que foi implementada a técnica de forwarding e quando possível reordenar as instruções e quando não for possível inserir NOPs, para evitar conflito de dados.
