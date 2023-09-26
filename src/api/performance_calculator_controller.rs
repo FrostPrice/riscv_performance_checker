@@ -1,8 +1,9 @@
 use crate::{
     config::db::Pool,
     models::response::ResponseBody,
-    performance_calculator::performance_calculator::{
-        PerformanceCalculatorDTO, PerformanceCalculatorPipelineDTO,
+    performance_calculator::{
+        monocycle_calculator::PerformanceCalculatorDTO,
+        pipeline_calculator::PerformanceCalculatorPipelineDTO,
     },
     services::performance_calculator_service,
     utils::constants,

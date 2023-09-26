@@ -1,1 +1,2 @@
-pub mod performance_calculator;
+pub mod monocycle_calculator;
+pub mod pipeline_calculator;

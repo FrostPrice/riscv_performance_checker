@@ -8,3 +8,5 @@ pub const MESSAGE_OK: &str = "ok";
 
 // Misc
 pub const EMPTY: &str = "";
+
+pub const NOP_INST: &str = "00000000000000000000000000010011";

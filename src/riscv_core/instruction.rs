@@ -11,7 +11,7 @@ J(String),
 L(String),
 */
 
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum OpCodeType {
     R(String),
     I(String),
@@ -24,7 +24,11 @@ pub enum OpCodeType {
 
 #[derive(Clone, Debug)]
 pub struct Instruction {
+    full_inst: String,
     opcode: OpCodeType,
+    rd: String,
+    rs1: String,
+    rs2: String,
 }
 
 impl Instruction {
@@ -41,10 +45,44 @@ impl Instruction {
             _ => unimplemented!("Opcode not implemented"),
         };
 
-        Self { opcode }
+        // 00000000000000000000 00000 0000000
+        let end = instruction.len() - 7;
+        let rd = instruction[end - 5..end].to_string();
+
+        // 000000000000 00000 000000000000000
+        let end = instruction.len() - 15;
+        let rs1 = instruction[end - 5..end].to_string();
+
+        // 0000000 00000 00000000000000000000
+        let end = instruction.len() - 20;
+        let rs2 = instruction[end - 5..end].to_string();
+
+        Self {
+            full_inst: instruction.to_string(),
+            opcode,
+            rd,
+            rs1,
+            rs2,
+        }
+    }
+
+    pub fn get_full_inst(self) -> String {
+        self.full_inst
     }
 
     pub fn get_opcode(self) -> OpCodeType {
         self.opcode
+    }
+
+    pub fn get_rd(self) -> String {
+        self.rd
+    }
+
+    pub fn get_rs1(self) -> String {
+        self.rs1
+    }
+
+    pub fn get_rs2(self) -> String {
+        self.rs2
     }
 }

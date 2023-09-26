@@ -39,12 +39,6 @@ pub struct PerformanceCalculatorDTO {
     pub bin_file_name: String,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct PerformanceCalculatorPipelineDTO {
-    pub tclock: f32,
-    pub bin_file_name: String,
-}
-
 impl PerformanceCalculator {
     pub fn calc_monocycle(
         performance_calculator_dto: PerformanceCalculatorDTO,
@@ -195,19 +189,5 @@ impl PerformanceCalculator {
             },
         })
         // End: function return
-    }
-
-    pub fn calc_pipeline(
-        performance_calculator_pipeline_dto: PerformanceCalculatorPipelineDTO,
-        conn: &mut Connection,
-    ) -> actix_web::Result<String, String> {
-        // 1. Insira o tempo de clock do Pipeline;
-        // 2. Escolha o arquivo com o programa em binário ou hexadecimal;
-        // 3. Execute todas as técnicas e calcule o desempenho de cada uma;
-        // 4. Gere arquivos para cada solução; e
-        // 5. Exiba todos os resultados.
-        // Obs: Um bug comum na reordenação é tentar buscar uma instrução após a última
-        // instrução.
-        Ok(String::from("TODO"))
     }
 }
