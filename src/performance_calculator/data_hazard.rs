@@ -1,107 +1,109 @@
+use std::collections::HashMap;
+
 use crate::riscv_core::instruction::{Instruction, OpCodeType};
 
-enum DataHazard {
-    Raw(),
-    War(),
-    Waw(),
+#[derive(Debug, Clone)]
+pub enum DataHazard {
+    Raw(usize),
+    War(usize),
+    Waw(usize),
+    None,
 }
 
-pub fn check_for_hazard(instructions: Vec<Instruction>, current_index: usize) -> bool {
-    if instructions.len() < 2 {
-        return false;
-    }
+// Instruções de escrita (Possuem RD): U, J, I, L, R
+// Instruções de leitura (Somente RS1): I, L
+// Instruções de leitura (Possuem RS1 e RS2): B, S, R
 
-    for (index, curent_inst) in instructions[2..current_index].iter().enumerate() {
-        let prev_inst = instructions[index].clone();
+fn war_hazard(current_inst: Instruction, next_instructions: Vec<Instruction>) -> DataHazard {
+    // Check for WAR hazards (Escrita-apos-Leitura) - NOK
+    // ha um conflito WAR, onde uma instrucao (next_inst) tenta escrever em um registrador que esta sendo lido por uma instrucao anterior (current_inst).
+    // Inst atual === leitura ----- Inst proxima(s) === escrita
 
-        // Verifica se o RD eh o zero, se for nao precisa verificar os hazards
-        if curent_inst.clone().get_rd() == "00000" {
-            continue;
-        }
+    let mut amount_of_nops = 0;
+    let mut nops_offset = 1;
 
-        // Check for WAR hazards (Escrita-apos-Leitura) - NOK
-        // ha um conflito WAR, onde uma instrucao tenta escrever em um registrador que esta sendo lido por uma instrucao posterior.
-        // Inst atual === escrita ----- Inst anterior === leitura
-        match prev_inst.clone().get_opcode() {
+    for (index, next_inst) in next_instructions.iter().rev().enumerate() {
+        // Quanto mais proximo da instrucao atual, maior o numero de nops
+        if amount_of_nops == 0 && index != 0 || next_instructions.len() == 1 {
+            nops_offset = 2
+        };
+
+        match current_inst.clone().get_opcode() {
             // Somente RS1
-            OpCodeType::I(_) | OpCodeType::L(_) => match curent_inst.clone().get_opcode() {
-                OpCodeType::I(_)
-                | OpCodeType::L(_)
+            OpCodeType::I(_) | OpCodeType::L(_) => match next_inst.clone().get_opcode() {
+                OpCodeType::U(_)
                 | OpCodeType::J(_)
-                | OpCodeType::R(_)
-                | OpCodeType::U(_) => {
-                    if prev_inst.clone().get_rs1() == curent_inst.clone().get_rd() {
-                        return true;
+                | OpCodeType::I(_)
+                | OpCodeType::L(_)
+                | OpCodeType::R(_) => {
+                    if current_inst.clone().get_rs1() == next_inst.clone().get_rd() {
+                        amount_of_nops += nops_offset;
+                        println!("WAR Hazard");
+                        continue;
                     }
                 }
-                _ => (),
+                _ => (), // Nao faz nada
             },
-
             // Com RS1 e RS2
             OpCodeType::B(_) | OpCodeType::S(_) | OpCodeType::R(_) => {
-                match curent_inst.clone().get_opcode() {
-                    OpCodeType::I(_)
-                    | OpCodeType::L(_)
+                match next_inst.clone().get_opcode() {
+                    OpCodeType::U(_)
                     | OpCodeType::J(_)
-                    | OpCodeType::R(_)
-                    | OpCodeType::U(_) => {
-                        if prev_inst.clone().get_rs1() == curent_inst.clone().get_rd()
-                            || prev_inst.clone().get_rs2() == curent_inst.clone().get_rd()
+                    | OpCodeType::I(_)
+                    | OpCodeType::L(_)
+                    | OpCodeType::R(_) => {
+                        if current_inst.clone().get_rs1() == next_inst.clone().get_rd()
+                            || current_inst.clone().clone().get_rs2() == next_inst.clone().get_rd()
                         {
-                            return true;
+                            amount_of_nops += nops_offset;
+                            println!("WAR Hazard");
+                            continue;
                         }
                     }
-                    _ => (),
+                    _ => (), // Nao faz nada
                 }
             }
             _ => (),
         }
+    }
 
-        // Check for WAW hazards (Escrita-apos-Escrita) - NOK
-        // o conflito e no WAW, onde duas instrucoes tentam escrever no mesmo registrador em uma ordem incorreta.
-        // Inst atual === escrita ----- Inst anterior === escrita
-        match prev_inst.clone().get_opcode() {
+    if amount_of_nops == 0 {
+        return DataHazard::None;
+    }
+
+    DataHazard::War(amount_of_nops)
+}
+
+fn waw_hazard(current_inst: Instruction, next_instructions: Vec<Instruction>) -> DataHazard {
+    // Check for WAW hazards (Escrita-apos-Escrita) - NOK
+    // o conflito e no WAW, onde duas instrucoes (next_inst e current_inst) tentam escrever no mesmo registrador em uma ordem incorreta.
+    // Inst atual === escrita ----- Inst proxima(s) === escrita
+    let mut amount_of_nops = 0;
+    let mut nops_offset = 1;
+
+    for (index, next_inst) in next_instructions.iter().rev().enumerate() {
+        // Quanto mais proximo da instrucao atual, maior o numero de nops
+        if amount_of_nops == 0 && index != 0 || next_instructions.len() == 1 {
+            nops_offset = 2
+        };
+
+        match current_inst.clone().get_opcode() {
             OpCodeType::I(_)
             | OpCodeType::L(_)
             | OpCodeType::J(_)
             | OpCodeType::R(_)
             | OpCodeType::U(_)
-            | OpCodeType::S(_) => match curent_inst.clone().get_opcode() {
+            | OpCodeType::S(_) => match next_inst.clone().get_opcode() {
                 OpCodeType::I(_)
                 | OpCodeType::L(_)
                 | OpCodeType::J(_)
                 | OpCodeType::R(_)
                 | OpCodeType::U(_)
                 | OpCodeType::S(_) => {
-                    if prev_inst.clone().get_rd() == curent_inst.clone().get_rd() {
-                        return true;
-                    }
-                }
-                _ => (),
-            },
-            _ => (),
-        }
-
-        // Check for RAW hazards (Leitura-apos-Escrita) - NOK
-        // ha um conflito RAW, onde uma instrucao tenta ler um registrador que foi escrito por uma instrucao anterior.
-        // Inst atual === leitura ----- Inst anterior === escrita
-        match prev_inst.clone().get_opcode() {
-            OpCodeType::I(_)
-            | OpCodeType::L(_)
-            | OpCodeType::J(_)
-            | OpCodeType::R(_)
-            | OpCodeType::U(_) => match curent_inst.clone().get_opcode() {
-                // Com RS1 e RS2
-                OpCodeType::I(_)
-                | OpCodeType::L(_)
-                | OpCodeType::B(_)
-                | OpCodeType::S(_)
-                | OpCodeType::R(_) => {
-                    if prev_inst.clone().get_rd() == curent_inst.clone().get_rs1()
-                        || prev_inst.clone().get_rd() == curent_inst.clone().get_rs2()
-                    {
-                        // Insert NOP before the conflicted instruction
-                        return true;
+                    if current_inst.clone().get_rd() == next_inst.clone().get_rd() {
+                        amount_of_nops += nops_offset;
+                        println!("WAW Hazard");
+                        continue;
                     }
                 }
                 _ => (),
@@ -110,5 +112,108 @@ pub fn check_for_hazard(instructions: Vec<Instruction>, current_index: usize) ->
         }
     }
 
-    false
+    if amount_of_nops == 0 {
+        return DataHazard::None;
+    }
+
+    DataHazard::Waw(amount_of_nops)
+}
+
+fn raw_hazard(current_inst: Instruction, next_instructions: Vec<Instruction>) -> DataHazard {
+    // Check for RAW hazards (Leitura-apos-Escrita) - OK
+    // ha um conflito RAW, onde uma instrucao (next_inst) tenta ler um registrador que foi escrito por uma instrucao anterior (current_inst).
+    // Inst atual === escrita ----- Inst proxima(s) === leitura
+    let mut amount_of_nops = 0;
+    let mut nops_offset = 1;
+
+    for (index, next_inst) in next_instructions.iter().rev().enumerate() {
+        // Quanto mais proximo da instrucao atual, maior o numero de nops
+        if amount_of_nops == 0 && index != 0 || next_instructions.len() == 1 {
+            nops_offset = 2
+        };
+
+        match current_inst.clone().get_opcode() {
+            OpCodeType::I(_)
+            | OpCodeType::L(_)
+            | OpCodeType::J(_)
+            | OpCodeType::R(_)
+            | OpCodeType::U(_) => match next_inst.clone().get_opcode() {
+                // Somente RS1
+                OpCodeType::I(_) | OpCodeType::L(_) => {
+                    if current_inst.clone().get_rd() == next_inst.clone().get_rs1() {
+                        amount_of_nops += nops_offset;
+                        println!("RAW Hazard");
+                        continue;
+                    }
+                }
+                // Com RS1 e RS2
+                OpCodeType::B(_) | OpCodeType::S(_) | OpCodeType::R(_) => {
+                    if current_inst.clone().get_rd() == next_inst.clone().get_rs1()
+                        || current_inst.clone().get_rd() == next_inst.clone().get_rs2()
+                    {
+                        amount_of_nops += nops_offset;
+                        println!("RAW Hazard");
+                        continue;
+                    }
+                }
+                _ => (),
+            },
+            _ => (),
+        }
+    }
+
+    if amount_of_nops == 0 {
+        return DataHazard::None;
+    }
+
+    DataHazard::Raw(amount_of_nops)
+}
+
+pub fn check_for_hazards(instructions: Vec<Instruction>) -> Vec<HashMap<String, DataHazard>> {
+    let mut hazards: Vec<HashMap<String, DataHazard>> = Vec::new();
+
+    for (index, current_inst) in instructions.iter().enumerate() {
+        let mut next_two: Vec<Instruction> = Vec::new();
+        let mut inst_hazards: HashMap<String, DataHazard> = HashMap::new();
+
+        for (index, next_inst) in instructions[index + 1..].iter().enumerate() {
+            if index < 2 {
+                next_two.push(next_inst.clone());
+            }
+        }
+
+        let war_hazard = war_hazard(current_inst.clone(), next_two.clone());
+        inst_hazards.insert("WAR".to_string(), war_hazard.clone());
+
+        match war_hazard {
+            DataHazard::War(_) => {
+                inst_hazards.insert("WAW".to_string(), DataHazard::None);
+                inst_hazards.insert("RAW".to_string(), DataHazard::None);
+                hazards.push(inst_hazards);
+                continue;
+            }
+            _ => (),
+        }
+
+        let waw_hazard = waw_hazard(current_inst.clone(), next_two.clone());
+        inst_hazards.insert("WAW".to_string(), waw_hazard.clone());
+
+        match waw_hazard {
+            DataHazard::Waw(_) => {
+                inst_hazards.insert("RAW".to_string(), DataHazard::None);
+                hazards.push(inst_hazards);
+                continue;
+            }
+            _ => (),
+        }
+
+        let raw_hazard = raw_hazard(current_inst.clone(), next_two.clone());
+        inst_hazards.insert("RAW".to_string(), raw_hazard.clone());
+
+        hazards.push(inst_hazards);
+    }
+
+    println!("Hazards: {:?}", hazards);
+
+    hazards
 }
