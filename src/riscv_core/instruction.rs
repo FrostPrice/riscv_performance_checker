@@ -47,7 +47,7 @@ impl Instruction {
 
         // 00000000000000000000 00000 0000000
         let end = instruction.len() - 7;
-        let mut rd = instruction[end - 5..end].to_string();
+        let rd = instruction[end - 5..end].to_string();
 
         // 000000000000 00000 000000000000000
         let end = instruction.len() - 15;
@@ -56,14 +56,6 @@ impl Instruction {
         // 0000000 00000 00000000000000000000
         let end = instruction.len() - 20;
         let rs2 = instruction[end - 5..end].to_string();
-
-        // TODO: Remember this
-        match opcode {
-            OpCodeType::S(_) => {
-                rd = rs2.clone();
-            }
-            _ => (),
-        }
 
         Self {
             full_inst: instruction.to_string(),
