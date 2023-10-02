@@ -246,7 +246,6 @@ pub fn check_for_reorder(instructions: Vec<Instruction>) -> Vec<Option<Vec<bool>
     // Retorna um matriz contendo bool se pode ou nao reordenar de acordo com a instrucao atual e as proximas duas
     let mut can_reorder: Vec<Option<Vec<bool>>> = Vec::new();
     let hazards = check_for_hazards(instructions.clone());
-    println!("Hazards: {:?}", hazards);
 
     for (index, current_inst) in instructions.iter().enumerate() {
         // Se a inst atual for nops, ignora
