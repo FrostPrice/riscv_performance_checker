@@ -3,7 +3,7 @@ use actix_web::{http::StatusCode, web};
 use crate::{
     config::db::Pool,
     performance_calculator::{
-        monocycle_calculator::{PerformanceCalculator, PerformanceCalculatorDTO},
+        monocycle_calculator::PerformanceCalculatorDTO,
         pipeline_calculator::PerformanceCalculatorPipelineDTO,
     },
     utils::error::ServiceError,
@@ -12,7 +12,8 @@ use crate::{
 pub async fn calc_monocycle(
     performance_calculator_dto: PerformanceCalculatorDTO,
     pool: &web::Data<Pool>,
-) -> Result<PerformanceCalculator, ServiceError> {
+) -> Result<crate::performance_calculator::monocycle_calculator::PerformanceCalculator, ServiceError>
+{
     match crate::performance_calculator::monocycle_calculator::PerformanceCalculator::calc_monocycle(
         performance_calculator_dto,
         &mut pool.get().unwrap(),
@@ -28,7 +29,8 @@ pub async fn calc_monocycle(
 pub async fn calc_pipeline(
     performance_calculator_pipeline_dto: PerformanceCalculatorPipelineDTO,
     pool: &web::Data<Pool>,
-) -> Result<String, ServiceError> {
+) -> Result<crate::performance_calculator::pipeline_calculator::PerformanceCalculator, ServiceError>
+{
     match crate::performance_calculator::pipeline_calculator::PerformanceCalculator::calc_pipeline(
         performance_calculator_pipeline_dto,
         &mut pool.get().unwrap(),

@@ -40,7 +40,7 @@ impl Instruction {
             "0000011" => OpCodeType::L(opcode_bits.to_string()),
             "0100011" => OpCodeType::S(opcode_bits.to_string()),
             "1100011" => OpCodeType::B(opcode_bits.to_string()),
-            "0110111" => OpCodeType::U(opcode_bits.to_string()),
+            "0110111" | "0010111" => OpCodeType::U(opcode_bits.to_string()),
             "1101111" => OpCodeType::J(opcode_bits.to_string()),
             _ => unimplemented!("Opcode not implemented"),
         };

@@ -31,11 +31,11 @@ pub struct BasicInformation {
     pub best_performance: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TechniqueResult {
     pub technique_name: String,
     pub total_cicles: f32,
-    pub aditional_cicles: f32,
+    pub cicles_diference: f32,
     pub average_cpi: f32,
     pub execution_time: f32,
     pub performance: f32,
@@ -51,7 +51,7 @@ impl PerformanceCalculator {
     pub fn calc_pipeline(
         performance_calculator_pipeline_dto: PerformanceCalculatorPipelineDTO,
         conn: &mut Connection,
-    ) -> actix_web::Result<String, String> {
+    ) -> actix_web::Result<PerformanceCalculator, String> {
         // Start: Get info from database
         let organization: Organization = match Organization::find_by_id(
             performance_calculator_pipeline_dto
@@ -141,7 +141,7 @@ impl PerformanceCalculator {
 
         // Start: Calc Performance
         let results = Self::calc_techniques(
-            organization,
+            organization.clone(),
             instructions,
             only_nops,
             forwading_with_nops,
@@ -151,10 +151,29 @@ impl PerformanceCalculator {
 
         // End: Calc Performance
 
-        Ok(String::from("TODO"))
+        // Start: define best technique performance
+        let mut sorted_results = results.clone();
+        sorted_results.sort_by(|a, b| b.performance.partial_cmp(&a.performance).unwrap());
+
+        let best_performance = sorted_results
+            .iter()
+            .map(|technique| technique.technique_name.clone())
+            .collect();
+        // End: define best technique performance
+
+        let basic_information = BasicInformation {
+            organization_name: organization.clone().id,
+            organization_clock_time: organization.clone().clock,
+            bin_file_name: performance_calculator_pipeline_dto.bin_file_name,
+            best_performance,
+        };
+
+        Ok(PerformanceCalculator {
+            basic_information,
+            results,
+        })
     }
 
-    // TOOO: Refactor this function
     fn calc_techniques(
         organization: Organization,
         instructions: Vec<Instruction>,
@@ -214,12 +233,12 @@ impl PerformanceCalculator {
         // Texec = (Total Instructions * CPI) / FClock
         // let execution_time = (total_cicles * average_cpi) / organization.clock; // In seconds
 
-        let performance = total_cicles;
+        let performance = 1.0; // A performance do original sempre sera 1.0
 
         let original = TechniqueResult {
             technique_name: "original".to_string(),
             total_cicles,
-            aditional_cicles: 0.0,
+            cicles_diference: 0.0,
             average_cpi,
             execution_time,
             performance,
@@ -231,6 +250,7 @@ impl PerformanceCalculator {
             organization.clone(),
             only_nops.clone(),
             total_cicles,
+            execution_time,
             String::from("only_nops"),
         );
 
@@ -239,6 +259,7 @@ impl PerformanceCalculator {
             organization.clone(),
             forwading_with_nops.clone(),
             total_cicles,
+            execution_time,
             String::from("forwading_with_nops"),
         );
 
@@ -247,6 +268,7 @@ impl PerformanceCalculator {
             organization.clone(),
             reorder_with_only_nops.clone(),
             total_cicles,
+            execution_time,
             String::from("reorder_with_only_nops"),
         );
 
@@ -255,6 +277,7 @@ impl PerformanceCalculator {
             organization.clone(),
             forwading_and_reorder_with_nops.clone(),
             total_cicles,
+            execution_time,
             String::from("forwading_and_reorder_with_nops"),
         );
 
@@ -267,11 +290,11 @@ impl PerformanceCalculator {
         techniques_result
     }
 
-    // TOOO: Refactor this function
     fn calc_performance(
         organization: Organization,
         instructions: Vec<Instruction>,
         original_cicles: f32,
+        original_exec_time: f32,
         technique_name: String,
     ) -> TechniqueResult {
         // Start: calculating instruction info
@@ -321,15 +344,18 @@ impl PerformanceCalculator {
         // Texec = (Total Instructions * CPI) / FClock
         // let execution_time = (total_cicles * average_cpi) / organization.clock; // In seconds
 
-        let aditional_cicles = original_cicles - total_cicles;
+        let cicles_diference = total_cicles - original_cicles;
 
-        let performance = total_cicles / aditional_cicles;
+        let mut performance = 1.0;
+        if original_exec_time > 0.0 {
+            performance = original_exec_time / execution_time;
+        }
         // End: calculating instruction info
 
         // Start: function return
         TechniqueResult {
             technique_name,
-            aditional_cicles,
+            cicles_diference,
             average_cpi,
             execution_time,
             performance,
@@ -428,17 +454,21 @@ fn reorder_with_only_nops(instructions: Vec<Instruction>) -> Vec<Instruction> {
             reorder_with_only_nops.push(current_inst.clone());
             nop_counter += 1;
         } else {
+            reorder_with_only_nops.push(current_inst.clone());
+
             if let Some(bool_insts) = can_reorder[index].clone() {
                 if bool_insts[1] {
-                    if index - 2 > 1 {
-                        reorder_with_only_nops.remove(index - 2);
-                        reorder_with_only_nops.insert(index - 2, current_inst.clone());
+                    if index >= 3 {
+                        let prev_index = index - 2;
+
+                        reorder_with_only_nops.remove(prev_index);
+                        reorder_with_only_nops.insert(prev_index, current_inst.clone());
+                        reorder_with_only_nops.remove(index);
+
                         nop_counter -= 1;
                     }
                 }
             }
-
-            reorder_with_only_nops.push(current_inst.clone());
         }
     }
 
@@ -453,7 +483,7 @@ fn forwarding_and_reorder_with_nops(instructions: Vec<Instruction>) -> Vec<Instr
     let mut nop_counter = 0;
     let mut forwarding_and_reorder_with_nops: Vec<Instruction> = vec![];
     let forwading_with_nops = forwading_with_nops(instructions.clone());
-    let can_reorder = check_for_reorder(instructions.clone());
+    let can_reorder = check_for_reorder(forwading_with_nops.clone());
 
     for (index, current_inst) in forwading_with_nops.iter().enumerate() {
         // Nao reordena inst do formato J e B
@@ -469,21 +499,25 @@ fn forwarding_and_reorder_with_nops(instructions: Vec<Instruction>) -> Vec<Instr
             forwarding_and_reorder_with_nops.push(current_inst.clone());
             nop_counter += 1;
         } else {
+            forwarding_and_reorder_with_nops.push(current_inst.clone());
+
             if let Some(bool_insts) = can_reorder[index].clone() {
                 if bool_insts[1] {
-                    if index - 2 > 1 {
-                        let nops = forwarding_and_reorder_with_nops[index - 2].clone();
+                    if index >= 3 {
+                        let prev_index = index - 2;
+
+                        let nops = forwarding_and_reorder_with_nops[prev_index].clone();
                         if nops.get_full_inst() == NOP_INST {
-                            forwarding_and_reorder_with_nops.remove(index - 2);
+                            forwarding_and_reorder_with_nops.remove(prev_index);
                             forwarding_and_reorder_with_nops
-                                .insert(index - 2, current_inst.clone());
+                                .insert(prev_index, current_inst.clone());
+                            forwarding_and_reorder_with_nops.remove(index);
+
                             nop_counter -= 1;
                         }
                     }
                 }
             }
-
-            forwarding_and_reorder_with_nops.push(current_inst.clone());
         }
     }
 
