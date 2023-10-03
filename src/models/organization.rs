@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{config::db::Connection, schema::organizations::dsl::*};
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Clone, Queryable, Serialize, Deserialize)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(table_name = crate::schema::organizations)]
 pub struct Organization {

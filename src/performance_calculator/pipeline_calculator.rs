@@ -1,10 +1,10 @@
-use std::{fs, ops::Index};
+use std::fs;
 
 use serde::{Deserialize, Serialize};
 
 use crate::{
     config::db::Connection,
-    models::bin_file::BinFile,
+    models::{bin_file::BinFile, organization::Organization},
     performance_calculator::data_hazard::{
         check_for_hazards, check_for_hazards_with_forwarding, check_for_reorder,
     },
@@ -20,17 +20,30 @@ use super::data_hazard::DataHazard;
 #[derive(Serialize, Deserialize)]
 pub struct PerformanceCalculator {
     pub basic_information: BasicInformation,
+    pub results: Vec<TechniqueResult>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct BasicInformation {
+    pub organization_name: String,
     pub organization_clock_time: f32,
     pub bin_file_name: String,
+    pub best_performance: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TechniqueResult {
+    pub technique_name: String,
+    pub total_cicles: f32,
+    pub aditional_cicles: f32,
+    pub average_cpi: f32,
+    pub execution_time: f32,
+    pub performance: f32,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct PerformanceCalculatorPipelineDTO {
-    pub tclock: f32,
+    pub organization_name: String,
     pub bin_file_name: String,
 }
 
@@ -40,6 +53,21 @@ impl PerformanceCalculator {
         conn: &mut Connection,
     ) -> actix_web::Result<String, String> {
         // Start: Get info from database
+        let organization: Organization = match Organization::find_by_id(
+            performance_calculator_pipeline_dto
+                .organization_name
+                .clone(),
+            conn,
+        ) {
+            Ok(organization) => organization,
+            Err(_) => {
+                return Err(format!(
+                    "Organization {} not found",
+                    performance_calculator_pipeline_dto.organization_name
+                ))
+            }
+        };
+
         let bin_file = match BinFile::find_by_id(
             performance_calculator_pipeline_dto.bin_file_name.clone(),
             conn,
@@ -64,26 +92,26 @@ impl PerformanceCalculator {
         // Start: Execute techniques
         let only_nops = only_nops(instructions.clone());
         let mut only_nops_str = String::new();
-        for i in only_nops {
+        for i in only_nops.clone() {
             only_nops_str.push_str(&format!("{}\n", i.get_full_inst()));
         }
 
         let forwading_with_nops = forwading_with_nops(instructions.clone());
         let mut forwarding_with_nops_str = String::new();
-        for i in forwading_with_nops {
+        for i in forwading_with_nops.clone() {
             forwarding_with_nops_str.push_str(&format!("{}\n", i.get_full_inst()));
         }
 
         let reorder_with_only_nops = reorder_with_only_nops(instructions.clone());
         let mut reorder_with_only_nops_str = String::new();
-        for i in reorder_with_only_nops {
+        for i in reorder_with_only_nops.clone() {
             reorder_with_only_nops_str.push_str(&format!("{}\n", i.get_full_inst()));
         }
 
         let forwading_and_reorder_with_nops =
             forwarding_and_reorder_with_nops(instructions.clone());
         let mut forwading_and_reorder_with_nops_str = String::new();
-        for i in forwading_and_reorder_with_nops {
+        for i in forwading_and_reorder_with_nops.clone() {
             forwading_and_reorder_with_nops_str.push_str(&format!("{}\n", i.get_full_inst()));
         }
         // End: Execute techniques
@@ -112,11 +140,202 @@ impl PerformanceCalculator {
         // End: Write to files
 
         // Start: Calc Performance
-        let tclock = performance_calculator_pipeline_dto.tclock;
+        let results = Self::calc_techniques(
+            organization,
+            instructions,
+            only_nops,
+            forwading_with_nops,
+            reorder_with_only_nops,
+            forwading_and_reorder_with_nops,
+        );
 
         // End: Calc Performance
 
         Ok(String::from("TODO"))
+    }
+
+    // TOOO: Refactor this function
+    fn calc_techniques(
+        organization: Organization,
+        instructions: Vec<Instruction>,
+        only_nops: Vec<Instruction>,
+        forwading_with_nops: Vec<Instruction>,
+        reorder_with_only_nops: Vec<Instruction>,
+        forwading_and_reorder_with_nops: Vec<Instruction>,
+    ) -> Vec<TechniqueResult> {
+        // Elaborar uma analise de desempenho que avalie o sobrecusto em instrucoes da solucao, o tempo de execucao e o numero de ciclos de programa da solucao em Pipeline selecionada considerando um tempo de clock fornecido pelo usuario.
+        let mut techniques_result: Vec<TechniqueResult> = Vec::new();
+
+        // Calc from original
+        // Start: calculating instruction info
+        let total_instructions = instructions.len();
+        let mut total_cicles: f32 = 0.0;
+
+        for inst in instructions {
+            let opcode = inst.clone().get_opcode();
+
+            let cpi: &f32;
+
+            match opcode {
+                OpCodeType::R(_) => {
+                    cpi = &organization.cpi_instruction_r;
+                }
+                OpCodeType::I(_) => {
+                    cpi = &organization.cpi_instruction_i;
+                }
+                OpCodeType::L(_) => {
+                    cpi = &organization.cpi_instruction_l;
+                }
+                OpCodeType::S(_) => {
+                    cpi = &organization.cpi_instruction_s;
+                }
+                OpCodeType::B(_) => {
+                    cpi = &organization.cpi_instruction_b;
+                }
+                OpCodeType::U(_) => {
+                    cpi = &organization.cpi_instruction_u;
+                }
+                OpCodeType::J(_) => {
+                    cpi = &organization.cpi_instruction_j;
+                }
+            }
+
+            total_cicles += cpi;
+        }
+
+        // CPI = total_cycles (with acordingly Instruction cycle) / total_instructions
+        let average_cpi = total_cicles / total_instructions as f32;
+
+        // For when using cpu time
+        // Texec = Total Instructions * CPI * TClock
+        let execution_time = total_instructions as f32 * average_cpi * organization.clock; // In seconds
+
+        // For when using cpu frequency
+        // Texec = (Total Instructions * CPI) / FClock
+        // let execution_time = (total_cicles * average_cpi) / organization.clock; // In seconds
+
+        let performance = total_cicles;
+
+        let original = TechniqueResult {
+            technique_name: "original".to_string(),
+            total_cicles,
+            aditional_cicles: 0.0,
+            average_cpi,
+            execution_time,
+            performance,
+        };
+        // End: calculating instruction info
+
+        // Calc from only_nops
+        let only_nops = Self::calc_performance(
+            organization.clone(),
+            only_nops.clone(),
+            total_cicles,
+            String::from("only_nops"),
+        );
+
+        // Calc from forwading_with_nops
+        let forwading_with_nops = Self::calc_performance(
+            organization.clone(),
+            forwading_with_nops.clone(),
+            total_cicles,
+            String::from("forwading_with_nops"),
+        );
+
+        // Calc from reorder_with_only_nops
+        let reorder_with_only_nops = Self::calc_performance(
+            organization.clone(),
+            reorder_with_only_nops.clone(),
+            total_cicles,
+            String::from("reorder_with_only_nops"),
+        );
+
+        // Calc from forwading_and_reorder_with_nops
+        let forwading_and_reorder_with_nops = Self::calc_performance(
+            organization.clone(),
+            forwading_and_reorder_with_nops.clone(),
+            total_cicles,
+            String::from("forwading_and_reorder_with_nops"),
+        );
+
+        techniques_result.push(original);
+        techniques_result.push(only_nops);
+        techniques_result.push(forwading_with_nops);
+        techniques_result.push(reorder_with_only_nops);
+        techniques_result.push(forwading_and_reorder_with_nops);
+
+        techniques_result
+    }
+
+    // TOOO: Refactor this function
+    fn calc_performance(
+        organization: Organization,
+        instructions: Vec<Instruction>,
+        original_cicles: f32,
+        technique_name: String,
+    ) -> TechniqueResult {
+        // Start: calculating instruction info
+        let total_instructions = instructions.len();
+        let mut total_cicles: f32 = 0.0;
+
+        for inst in instructions {
+            let opcode = inst.clone().get_opcode();
+
+            let cpi: &f32;
+
+            match opcode {
+                OpCodeType::R(_) => {
+                    cpi = &organization.cpi_instruction_r;
+                }
+                OpCodeType::I(_) => {
+                    cpi = &organization.cpi_instruction_i;
+                }
+                OpCodeType::L(_) => {
+                    cpi = &organization.cpi_instruction_l;
+                }
+                OpCodeType::S(_) => {
+                    cpi = &organization.cpi_instruction_s;
+                }
+                OpCodeType::B(_) => {
+                    cpi = &organization.cpi_instruction_b;
+                }
+                OpCodeType::U(_) => {
+                    cpi = &organization.cpi_instruction_u;
+                }
+                OpCodeType::J(_) => {
+                    cpi = &organization.cpi_instruction_j;
+                }
+            }
+
+            total_cicles += cpi;
+        }
+
+        // CPI = total_cycles (with acordingly Instruction cycle) / total_instructions
+        let average_cpi = total_cicles / total_instructions as f32;
+
+        // For when using cpu time
+        // Texec = Total Instructions * CPI * TClock
+        let execution_time = total_instructions as f32 * average_cpi * organization.clock; // In seconds
+
+        // For when using cpu frequency
+        // Texec = (Total Instructions * CPI) / FClock
+        // let execution_time = (total_cicles * average_cpi) / organization.clock; // In seconds
+
+        let aditional_cicles = original_cicles - total_cicles;
+
+        let performance = total_cicles / aditional_cicles;
+        // End: calculating instruction info
+
+        // Start: function return
+        TechniqueResult {
+            technique_name,
+            aditional_cicles,
+            average_cpi,
+            execution_time,
+            performance,
+            total_cicles,
+        }
+        // End: function return
     }
 }
 

@@ -1,6 +1,4 @@
-use std::{cmp, collections::HashMap};
-
-use actix_web::web::Data;
+use std::collections::HashMap;
 
 use crate::{
     riscv_core::instruction::{Instruction, OpCodeType},
