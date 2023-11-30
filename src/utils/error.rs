@@ -1,5 +1,6 @@
-use crate::models::response::ResponseBody;
 use actix_web::{http::StatusCode, HttpResponse};
+
+use crate::models::response::ResponseBody;
 
 pub struct ServiceError {
     pub http_status: StatusCode,

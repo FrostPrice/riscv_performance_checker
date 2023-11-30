@@ -1,5 +1,5 @@
 use diesel::{
-    query_builder::AsChangeset, Insertable, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+    Insertable, query_builder::AsChangeset, Queryable, QueryDsl, QueryResult, RunQueryDsl,
 };
 use serde::{Deserialize, Serialize};
 

@@ -202,12 +202,17 @@ fn forwading_hazard(current_inst: Instruction, next_instructions: Vec<Instructio
     for next in next_instructions.clone() {
         match current_inst.clone().get_opcode() {
             OpCodeType::L(_) => match next.clone().get_opcode() {
-                OpCodeType::U(_)
-                | OpCodeType::J(_)
-                | OpCodeType::I(_)
-                | OpCodeType::L(_)
-                | OpCodeType::R(_) => {
-                    if current_inst.clone().get_rd() == next.clone().get_rd() {
+                // Somente RS1
+                OpCodeType::I(_) | OpCodeType::L(_) => {
+                    if current_inst.clone().get_rd() == next.clone().get_rs1() {
+                        return 1;
+                    }
+                }
+                // Com RS1 e RS2
+                OpCodeType::B(_) | OpCodeType::S(_) | OpCodeType::R(_) => {
+                    if current_inst.clone().get_rd() == next.clone().get_rs1()
+                        || current_inst.clone().get_rd() == next.clone().get_rs2()
+                    {
                         return 1;
                     }
                 }

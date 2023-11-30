@@ -1,3 +1,5 @@
+use actix_web::{HttpResponse, Result, web};
+
 use crate::{
     config::db::Pool,
     models::response::ResponseBody,
@@ -8,7 +10,6 @@ use crate::{
     services::performance_calculator_service,
     utils::constants,
 };
-use actix_web::{web, HttpResponse, Result};
 
 // GET api/performance_calculator/calc_monocycle
 pub async fn calc_monocycle(

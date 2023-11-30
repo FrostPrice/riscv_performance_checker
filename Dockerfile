@@ -19,8 +19,8 @@ FROM debian
 
 ARG APP=/home/performance_checker
 
-RUN apt-get update; \ 
-    apt-get install -y libsqlite3-dev; \ 
+RUN apt-get update; \
+    apt-get install -y libsqlite3-dev; \
     mkdir -p ${APP} 
 
 COPY --from=builder /home/performance_checker/target/release/riscv_performance_checker ${APP}/riscv_performance_checker

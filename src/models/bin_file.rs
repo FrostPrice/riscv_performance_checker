@@ -1,6 +1,6 @@
 use actix_web::web::Bytes;
 use diesel::{
-    query_builder::AsChangeset, Insertable, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+    Insertable, query_builder::AsChangeset, Queryable, QueryDsl, QueryResult, RunQueryDsl,
     Selectable,
 };
 use serde::{Deserialize, Serialize};

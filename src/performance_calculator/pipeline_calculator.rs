@@ -504,7 +504,7 @@ fn forwarding_and_reorder_with_nops(instructions: Vec<Instruction>) -> Vec<Instr
             if let Some(bool_insts) = can_reorder[index].clone() {
                 if bool_insts[1] {
                     if index >= 3 {
-                        let prev_index = index - 2;
+                        let prev_index = index - 3;
 
                         let nops = forwarding_and_reorder_with_nops[prev_index].clone();
                         if nops.get_full_inst() == NOP_INST {

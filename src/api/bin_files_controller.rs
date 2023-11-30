@@ -1,6 +1,6 @@
 use actix_web::{
-    web::{self, Bytes},
-    HttpResponse, Result,
+    HttpResponse,
+    Result, web::{self, Bytes},
 };
 
 use crate::{
